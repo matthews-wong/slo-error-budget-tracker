@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slo-error-budget-tracker"
+version = "0.1.0"
+description = "Compute SLO compliance and error-budget burn (multi-window burn-rate alerts) from request-count time series."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Matthews Wong" }]
+keywords = ["sre", "slo", "sli", "error-budget", "burn-rate", "observability"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: System :: Monitoring",
+]
+dependencies = [
+    "pandas>=2.0",
+    "PyYAML>=6.0",
+    "click>=8.1",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+slo-tracker = "slobudget.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["slobudget*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

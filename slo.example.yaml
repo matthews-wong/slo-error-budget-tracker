@@ -1,0 +1,30 @@
+# Example SLO definition consumed by `slo-tracker report --slo slo.example.yaml`.
+# target is a fraction in (0, 1); window is the rolling compliance window.
+name: checkout-api-availability
+target: 0.999          # 99.9% of requests should succeed
+window: 30d            # rolling 30-day error-budget window
+description: Fraction of checkout API requests served without a 5xx error.
+
+# Optional: override the default Google SRE burn-rate ladder.
+# Omit this block to use the built-in 14.4x / 6x / 3x / 1x defaults.
+burn_windows:
+  - name: fast-critical
+    long: 1h
+    short: 5m
+    threshold: 14.4
+    severity: page
+  - name: fast-high
+    long: 6h
+    short: 30m
+    threshold: 6
+    severity: page
+  - name: slow-medium
+    long: 1d
+    short: 2h
+    threshold: 3
+    severity: ticket
+  - name: slow-low
+    long: 3d
+    short: 6h
+    threshold: 1
+    severity: ticket
