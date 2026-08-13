@@ -50,6 +50,40 @@ def test_sample_style_numbers(incident_series):
     )
 
 
+def test_zero_traffic_window_is_not_exhausted():
+    # A window with no traffic has no failures and a fully-intact budget.
+    # The status must be internally consistent: 100% remaining => NOT exhausted.
+    slo = SLO(name="t", target=0.999, window="30d")
+    status = compute_budget(slo, good=0, total=0)
+
+    assert status.total_requests == 0
+    assert status.bad_requests == 0
+    assert status.error_budget == pytest.approx(0.0)
+    assert status.consumed_fraction == pytest.approx(0.0)
+    assert status.remaining_fraction == pytest.approx(1.0)
+    assert status.is_met is True
+    # Regression: zero traffic previously reported the budget as exhausted
+    # (budget_remaining == 0 <= 0) while also reporting 100% remaining.
+    assert status.is_exhausted is False
+
+
+def test_budget_exactly_exhausted_boundary():
+    # bad == error budget: the budget is spent to the last allowed failure.
+    # target 0.5 keeps every value exact in floating point, so the boundary is
+    # crisp: budget = 0.5 * 100 = 50 allowed fails, and exactly 50 fail.
+    slo = SLO(name="t", target=0.5, window="30d")
+    status = compute_budget(slo, good=50, total=100)
+
+    assert status.bad_requests == 50
+    assert status.error_budget == pytest.approx(50.0)
+    assert status.budget_remaining == pytest.approx(0.0)
+    assert status.consumed_fraction == pytest.approx(1.0)
+    assert status.remaining_fraction == pytest.approx(0.0)
+    assert status.sli == pytest.approx(slo.target)
+    assert status.is_met is True  # sli >= target (boundary is inclusive)
+    assert status.is_exhausted is True  # zero budget left == exhausted
+
+
 def test_invalid_counts_raise():
     slo = SLO(name="t", target=0.99)
     with pytest.raises(ValueError):

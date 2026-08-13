@@ -121,7 +121,13 @@ class BudgetStatus:
 
     @property
     def is_exhausted(self) -> bool:
-        return self.budget_remaining <= 0
+        """True once consumed failures meet or exceed the allowed budget.
+
+        Requires actual traffic: a zero-traffic window has no failures and a
+        fully-intact budget, so it is *not* exhausted even though its absolute
+        ``budget_remaining`` is ``0`` (there were ``0`` allowed failures).
+        """
+        return self.total_requests > 0 and self.budget_remaining <= 0
 
 
 @dataclass(frozen=True)
